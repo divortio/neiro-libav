@@ -1,0 +1,37 @@
+name: Neiro Libav Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  repository_dispatch:
+    types: [upstream-audio-decode-updated]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Loop Over Dependencies & Compile
+        run: bash build/sync_and_build.sh
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: neiro-libav-build
+          path: dist/*/*.zip
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*/*.zip
+          generate_release_notes: true

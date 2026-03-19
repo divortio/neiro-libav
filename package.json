@@ -1,0 +1,41 @@
+{
+  "name": "@tigerabrodioss/neiro-libav",
+  "version": "0.7.0",
+  "description": "Audio processing library explicitly mapped to generic JS gracefully.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "audio",
+    "loudness",
+    "lufs",
+    "normalization",
+    "true-peak",
+    "silence-trimming",
+    "dsp",
+    "serverless"
+  ],
+  "license": "MIT",
+  "author": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "vitest": "^4.0.18"
+  }
+}

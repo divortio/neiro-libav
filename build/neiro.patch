@@ -1,0 +1,125 @@
+diff -rupN '--exclude=node_modules' '--exclude=dist' '--exclude=bun.lock' '--exclude=package-lock.json' neiro/README.md neiro-libav/README.md
+--- neiro/README.md	2026-03-14 09:05:43.000000000 -0400
++++ neiro-libav/README.md	2026-03-18 07:18:39.308304390 -0400
+@@ -1,23 +1,21 @@
+-# neiro 音色
++# libavneiro 音色
+ 
+ Audio processing for TypeScript. Chainable, immutable, serverless-ready.
+ 
+-neiro (音色, "tone color") is a TypeScript library for processing audio on the server. Loudness normalization, true peak limiting, silence trimming, fades, slicing, and more — all through a clean, chainable API.
++libavneiro (音色, "tone color") is a TypeScript library for processing audio on the server. Loudness normalization, true peak limiting, silence trimming, fades, slicing, and more — all through a clean, chainable API.
+ 
+ Runs anywhere: Node.js, Vercel, Cloudflare Workers, any serverless runtime.
+ 
+ ## Install
+ 
+ ```bash
+-bun add @tigerabrodioss/neiro
+-# or
+-npm install @tigerabrodioss/neiro
++npm install libavneiro
+ ```
+ 
+ ## Quick Start
+ 
+ ```typescript
+-import { AudioTrack } from "@tigerabrodioss/neiro";
++import { AudioTrack } from "libavneiro";
+ import { readFileSync, writeFileSync } from "fs";
+ 
+ const buffer = readFileSync("input.mp3");
+@@ -50,9 +48,9 @@ writeFileSync("output.wav", track.toWav(
+ 
+ Audio files from different sources come in at wildly different volumes, with padding, with clipping. Fixing this usually means reaching for ffmpeg (heavy, binary dependency) or cobbling together multiple npm packages.
+ 
+-neiro gives you a single, typed API that handles the common cases. The DSP internals (ITU-R BS.1770-4 loudness, true peak detection via 4x oversampling, K-weighting filters) are implemented in TypeScript — no WASM, no native binaries, no ffmpeg.
++libavneiro gives you a single, typed API that handles the common cases. The DSP internals (ITU-R BS.1770-4 loudness, true peak detection via 4x oversampling, K-weighting filters) are implemented in TypeScript, backed by a lightweight custom `libav.js` WASM engine for decoding.
+ 
+-Two small runtime dependencies handle MP3 codec work: `lamejs` for encoding and `audio-decode` for decoding. Everything else is hand-written TypeScript.
++Two runtime dependencies handle codec work: `lamejs` for encoding mp3, and `libav.js` for decoding audio formats. Everything else is hand-written TypeScript.
+ 
+ ## API at a Glance
+ 
+diff -rupN '--exclude=node_modules' '--exclude=dist' '--exclude=bun.lock' '--exclude=package-lock.json' neiro/package.json neiro-libav/package.json
+--- neiro/package.json	2026-03-14 09:05:43.000000000 -0400
++++ neiro-libav/package.json	2026-03-19 01:51:10.818822851 -0400
+@@ -1,7 +1,7 @@
+ {
+-  "name": "@tigerabrodioss/neiro",
++  "name": "@divortio/neiro-libav",
+   "version": "0.4.0",
+-  "description": "Audio processing library for TypeScript. Loudness normalization, true peak limiting, silence trimming, and more. Runs anywhere — serverless, Edge, Node.",
++  "description": "Audio processing library explicitly built on top of a custom lightweight libav.js WASM engine. Loudness normalization, true peak limiting, silence trimming, and more.",
+   "type": "module",
+   "main": "./dist/index.cjs",
+   "module": "./dist/index.js",
+@@ -37,10 +37,10 @@
+     "serverless"
+   ],
+   "license": "MIT",
+-  "author": "",
++  "author": "divortio",
+   "repository": {
+     "type": "git",
+-    "url": ""
++    "url": "git+https://github.com/divortio/neiro-libav.git"
+   },
+   "devDependencies": {
+     "@types/node": "^25.3.2",
+@@ -51,6 +51,6 @@
+   },
+   "dependencies": {
+     "@breezystack/lamejs": "^1.2.7",
+-    "audio-decode": "^2.2.3"
++    "audio-decode": "file:../../../audio-decode-libav/src/audio-decode-libav"
+   }
+ }
+diff -rupN '--exclude=node_modules' '--exclude=dist' '--exclude=bun.lock' '--exclude=package-lock.json' neiro/tests/codecs/libav.test.ts neiro-libav/tests/codecs/libav.test.ts
+--- neiro/tests/codecs/libav.test.ts	1969-12-31 19:00:00.000000000 -0500
++++ neiro-libav/tests/codecs/libav.test.ts	2026-03-18 07:18:39.310209592 -0400
+@@ -0,0 +1,44 @@
++import { describe, expect, it } from "vitest";
++import { AudioTrack } from "../../src/audio-track";
++import { calculateIntegratedLoudness } from "../../src/dsp/lufs";
++import fs from "fs";
++import path from "path";
++import { fileURLToPath } from "url";
++
++const __filename = fileURLToPath(import.meta.url);
++const __dirname = path.dirname(__filename);
++
++describe("Libav.js Format Decoding & DSP Integration", () => {
++    const fixturesDir = path.resolve(__dirname, "../../../../../../tests/fixtures");
++    const formats = ["wav", "mp3", "m4a", "flac"];
++
++    for (const ext of formats) {
++        it(`Successfully normalizes 60s generated ${ext} test tone`, async () => {
++            const fileBuf = fs.readFileSync(path.join(fixturesDir, `test.${ext}`));
++            const track = await AudioTrack.fromBuffer(fileBuf);
++
++            // Verify basic decode bounds for the 60s test tone
++            expect(track.duration).toBeGreaterThan(58);
++            expect(track.duration).toBeLessThan(62);
++            expect(track.sampleRate).toBe(44100);
++
++            // Validate LUFS tracking & DSP application
++            const preLufs = track.loudness();
++            const normalized = track.normalize({ target: -14, peakLimit: -1.0 });
++            const postLufs = normalized.loudness();
++
++            expect(Math.abs(postLufs - -14)).toBeLessThan(1.5); // within 1.5 lufs
++            console.log(`[${ext.toUpperCase()}] Normalized natively from ${preLufs.toFixed(2)} LUFS to ${postLufs.toFixed(2)} LUFS.`);
++        }, 15000); // 15s timeout
++    }
++    
++    it("Ignores raw headerless PCM bytes gracefully when probing throws", async () => {
++        const pcmBuf = fs.readFileSync(path.join(fixturesDir, `test.pcm`));
++        try {
++            await AudioTrack.fromBuffer(pcmBuf);
++        } catch (e) {
++            expect(e.message.match(/Unknown audio format|Invalid data/)).toBeTruthy();
++        }
++    });
++
++});
