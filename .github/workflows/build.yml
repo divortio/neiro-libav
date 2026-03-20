@@ -40,7 +40,7 @@ jobs:
       - name: Download Pre-built libav.js-audio dependency
         run: |
           mkdir -p src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
-          gh release download --repo divortio/libav.js-audio --pattern "*.zip" --dir src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
+          gh release download --repo divortio/libav.js-audio --pattern "*.zip" --clobber --dir src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
           cd src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
           for z in *.zip; do unzip -o -q "$z"; rm "$z"; done
         env:
@@ -50,7 +50,7 @@ jobs:
         run: |
           VERSION=$(jq -r '.version' src/audio-decode-libav/package.json)
           mkdir -p "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
-          gh release download --repo divortio/audio-decode-libav --pattern "*.zip" --dir "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
+          gh release download --repo divortio/audio-decode-libav --pattern "*.zip" --clobber --dir "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
           cd "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
           for z in *.zip; do unzip -o -q "$z"; rm "$z"; done
         env:
