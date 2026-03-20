@@ -63,11 +63,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: neiro-libav-build
-          path: src/neiro-libav/dist/*.zip
+          path: src/neiro-libav/dist/**/*.zip
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: src/neiro-libav/dist/*.zip
+          files: src/neiro-libav/dist/**/*.zip
           generate_release_notes: true
