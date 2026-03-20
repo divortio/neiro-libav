@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Download Pre-built libav.js-audio dependency
         run: |
@@ -42,7 +42,7 @@ jobs:
           cd src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
           for z in *.zip; do unzip -q "$z"; rm "$z"; done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
 
       - name: Download Pre-built audio-decode-libav dependency
         run: |
@@ -52,7 +52,7 @@ jobs:
           cd "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
           for z in *.zip; do unzip -q "$z"; rm "$z"; done
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
 
       - name: Build custom Neiro library
         run: cd src/neiro-libav && bash build/sync_and_build.sh
