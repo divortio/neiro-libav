@@ -1,6 +1,6 @@
 {
   "name": "@tigerabrodioss/neiro-libav",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Audio processing library explicitly mapped to generic JS gracefully.",
   "type": "module",
   "main": "./src/index.js",

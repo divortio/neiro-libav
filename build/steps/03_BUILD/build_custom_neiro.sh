@@ -11,9 +11,12 @@ mkdir -p "$BASE_DIST_DIR"
 
 AUDIO_DECODE_DIST="$ROOT_DIR/../audio-decode-libav/dist"
 
-echo "Locating audio-decode outputs at: $AUDIO_DECODE_DIST"
+AUDIO_DECODE_VERSION=$(node -p "require('$AUDIO_DECODE_DIST/../package.json').version")
+AUDIO_DECODE_BUILD_DIR="$AUDIO_DECODE_DIST/audio-decode-libav-$AUDIO_DECODE_VERSION"
 
-for ENGINE_PATH in "$AUDIO_DECODE_DIST"/*/; do
+echo "Locating audio-decode outputs at: $AUDIO_DECODE_BUILD_DIR"
+
+for ENGINE_PATH in "$AUDIO_DECODE_BUILD_DIR"/*/; do
     if [ ! -d "$ENGINE_PATH" ]; then continue; fi
     ENGINE_NAME=$(basename "$ENGINE_PATH")
     echo "Building Neiro for engine: $ENGINE_NAME"

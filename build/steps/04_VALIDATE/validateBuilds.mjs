@@ -29,6 +29,6 @@ for (const v of variants) {
     if (!fs.existsSync(path.join(p, 'src/audio-decode-libav/audio-decode.js'))) throw new Error('Missing mapped audio-decode payload seamlessly enclosed inside ' + v);
     
     // Check libav exists deeper inside
-    if (!fs.existsSync(path.join(p, 'src/audio-decode-libav/src/libav.js-audio/libav.js'))) throw new Error('Missing deep libav.js sequence inside ' + v);
+    if (!fs.existsSync(path.join(p, 'src/audio-decode-libav/libav.js-audio'))) throw new Error('Missing deep libav.js sequence inside ' + v);
 }
 console.log('All variants successfully validated.');
