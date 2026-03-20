@@ -36,11 +36,24 @@ jobs:
         with:
           node-version: 22
 
-      - name: Build libav.js-audio dependency
-        run: cd src/libav.js-audio && bash build/sync_and_build.sh
+      - name: Download Pre-built libav.js-audio dependency
+        run: |
+          mkdir -p src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
+          gh release download --repo divortio/libav.js-audio --pattern "*.zip" --dir src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
+          cd src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
+          for z in *.zip; do unzip -q "$z"; rm "$z"; done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build audio-decode-libav dependency
-        run: cd src/audio-decode-libav && bash build/sync_and_build.sh
+      - name: Download Pre-built audio-decode-libav dependency
+        run: |
+          VERSION=$(jq -r '.version' src/audio-decode-libav/package.json)
+          mkdir -p "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
+          gh release download --repo divortio/audio-decode-libav --pattern "*.zip" --dir "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
+          cd "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
+          for z in *.zip; do unzip -q "$z"; rm "$z"; done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build custom Neiro library
         run: cd src/neiro-libav && bash build/sync_and_build.sh
