@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout neiro-libav
         uses: actions/checkout@v4
@@ -40,7 +42,7 @@ jobs:
           mkdir -p src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
           gh release download --repo divortio/libav.js-audio --pattern "*.zip" --dir src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
           cd src/libav.js-audio/src/libav.js/dist/libav-6.8.8.0-audio
-          for z in *.zip; do unzip -q "$z"; rm "$z"; done
+          for z in *.zip; do unzip -o -q "$z"; rm "$z"; done
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
 
@@ -50,7 +52,7 @@ jobs:
           mkdir -p "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
           gh release download --repo divortio/audio-decode-libav --pattern "*.zip" --dir "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
           cd "src/audio-decode-libav/dist/audio-decode-libav-$VERSION"
-          for z in *.zip; do unzip -q "$z"; rm "$z"; done
+          for z in *.zip; do unzip -o -q "$z"; rm "$z"; done
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
 
