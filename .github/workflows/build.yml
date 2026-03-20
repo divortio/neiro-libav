@@ -4,8 +4,7 @@ on:
   push:
     tags:
       - 'v*'
-  repository_dispatch:
-    types: [upstream-audio-decode-updated]
+
   workflow_dispatch:
 
 jobs:
